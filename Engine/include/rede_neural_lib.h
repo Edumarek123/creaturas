@@ -35,15 +35,11 @@ struct RedeNeural{
 	void carregar_rede(const std::string path); //ok
 
 	void FeedFoward(Matriz input_layer); //ok
-	void Calcula_Erros(Matriz saidas_esperadas); //ok
-	void BackPropagation(Matriz entradas); //ok
-
-	void TreinarRede(const std::string entradas,const std::string saidas_esperadas, int porcentagem_testes, float threshold);
+	void mutacao();
 };
 
 void covolucao_saidas(Matriz* m);
-
-int contagem_dados(std::string path_arquivo);
-Matriz* separa_dados(std::string linha);
+int covolucao_saidasToDecimal(Matriz* m);
+RedeNeural cruzamento(RedeNeural* a, RedeNeural* b);
 
 #endif //REDE_NEURAL_LIB_H

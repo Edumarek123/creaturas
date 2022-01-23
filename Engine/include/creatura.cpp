@@ -41,7 +41,7 @@ Creatura::Creatura(int X, int Y, float MASSA, std::vector<int> COR, float VELOCI
 	y=X;
 	
 	std::vector<int> lh={2, 2};
-	cerebro=new RedeNeural(2, 4, lh, 1);
+	cerebro=new RedeNeural(2, 8, lh, 1);
 
 	//imprimi_creatura();
 }
@@ -82,46 +82,67 @@ void Creatura::imprimi_creatura(){
 }
 
 void Creatura::movimentar(){
-	x+=(direcao[0]*velocidade);
-	y+=(direcao[1]*velocidade);
+	int delta_x, delta_y;
 
 	Matriz* entradas=new Matriz(2, 1);
 
 	entradas->matriz[0][0]=x;	
 	entradas->matriz[1][0]=y;	
-	
 
 	cerebro->FeedFoward(*entradas);
-	for(int i=0; i<=3; i++)
-		if(cerebro->saidas[2]->matriz[i][0]>0.4)
-			cerebro->saidas[2]->matriz[i][0]=1;
 
-	if(cerebro->saidas[2]->matriz[0][0]==1){
-		direcao[0]=-1;
-		direcao[1]=0;
+	int escolha=covolucao_saidasToDecimal(cerebro->saidas[2]);
+	switch (escolha){
+		case 1:
+			direcao[0]=1;
+			direcao[1]=0;
+			break;
+		case 2:
+			direcao[0]=1;
+			direcao[1]=-1;
+			break;
+		case 4:
+			direcao[0]=0;
+			direcao[1]=-1;
+			break;
+		case 8:
+			direcao[0]=-1;
+			direcao[1]=-1;
+			break;
+		case 16:
+			direcao[0]=-1;
+			direcao[1]=0;
+			break;
+		case 32:
+			direcao[0]=-1;
+			direcao[1]=1;
+			break;
+		case 64:
+			direcao[0]=0;
+			direcao[1]=1;
+			break;
+		case 128:
+			direcao[0]=1;
+			direcao[1]=1;
+			break;
 	}
-	if(cerebro->saidas[2]->matriz[1][0]==1){
-		direcao[0]=0;
-		direcao[1]=1;
-	}
 
-	if(cerebro->saidas[2]->matriz[2][0]==1){
-		direcao[0]=1;
-		direcao[1]=0;
-	}
+	delta_x=x+(direcao[0]*velocidade);
+	delta_y=y+(direcao[1]*velocidade);
 
-	if(cerebro->saidas[2]->matriz[3][0]==1){
-		direcao[0]=0;
-		direcao[1]=-1;
-	}
+	//std::cout<<"tamanho: "<<tamanho<<" | x = "<<x<<" | delta_x = "<<delta_x<<" | y = "<<y<<" | delta_y = "<<delta_y<<std::endl;
 
-
-	if(x>=701)
+	if(delta_x>500-tamanho)
+		x=500-tamanho;
+	else if(delta_x<0)
 		x=0;
-	if(x<=-1)
-		x=700;
-	if(y>=701)
+	else
+		x=delta_x;
+
+	if(delta_y>500-tamanho)
+		y=500-tamanho;
+	else if(delta_y<0)
 		y=0;
-	if(y<=-1)
-		y=700;
+	else
+		y=delta_y;
 }
