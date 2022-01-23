@@ -1,7 +1,7 @@
 //
 // Created by Edumarek on 26/06/2021.
 //
-#include "matriz_lib.h"
+#include "matriz_lib.hpp"
 
 //------------------CONSTRUTORES&DESTRUTORES-------------------//
 

@@ -1,7 +1,7 @@
 //
 // Created by Edumarek on 22/01/2022.
 //
-#include "creatura.h"
+#include "creatura.hpp"
 
 
 const float massa_minima=10; //1.0kg

@@ -2,7 +2,7 @@
 // Created by Edumarek on 27/06/2021.
 //
 
-#include "rede_neural_lib.h"
+#include "rede_neural_lib.hpp"
 
 //------------------CONSTRUTORES&DESTRUTORES-------------------//
 

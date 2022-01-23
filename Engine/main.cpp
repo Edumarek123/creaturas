@@ -1,7 +1,7 @@
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
 #include<iostream>
-#include"include/creatura.h"
+#include"include/creatura.hpp"
 #include<vector>
 #include<cstdlib>
 
