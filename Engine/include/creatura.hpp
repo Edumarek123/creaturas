@@ -27,7 +27,7 @@ struct Creatura{
     float forca;
 	
     Creatura();
-    //Creatura(const Creatura &c);
+    Creatura(const Creatura &c);
     Creatura(int X, int Y, float MASSA, std::vector<int> COR, float VELOCIDADE, float FORCA);
     ~Creatura();
 

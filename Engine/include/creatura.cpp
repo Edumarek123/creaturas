@@ -25,6 +25,18 @@ Creatura::Creatura(){
 	y=tamanho+1;
 }
 
+Creatura::Creatura(const Creatura &c){
+	cerebro=c.cerebro;
+	x=c.x;
+	y=c.y;
+	massa=c.massa;
+	tamanho=c.tamanho;
+	cor=c.cor;
+	direcao=c.direcao;
+	velocidade=c.velocidade;
+	forca=c.forca;
+}
+
 Creatura::Creatura(int X, int Y, float MASSA, std::vector<int> COR, float VELOCIDADE, float FORCA){
 	massa=MASSA;
 	velocidade=VELOCIDADE;
@@ -38,9 +50,9 @@ Creatura::Creatura(int X, int Y, float MASSA, std::vector<int> COR, float VELOCI
 	calcula_cor();
 
 	x=X;
-	y=X;
+	y=Y;
 	
-	std::vector<int> lh={2, 2};
+	std::vector<int> lh={16, 16};
 	cerebro=new RedeNeural(2, 8, lh, 1);
 
 	//imprimi_creatura();
@@ -129,8 +141,6 @@ void Creatura::movimentar(){
 
 	delta_x=x+(direcao[0]*velocidade);
 	delta_y=y+(direcao[1]*velocidade);
-
-	//std::cout<<"tamanho: "<<tamanho<<" | x = "<<x<<" | delta_x = "<<delta_x<<" | y = "<<y<<" | delta_y = "<<delta_y<<std::endl;
 
 	if(delta_x>500-tamanho)
 		x=500-tamanho;

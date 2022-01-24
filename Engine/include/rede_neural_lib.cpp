@@ -11,6 +11,7 @@ RedeNeural::RedeNeural(int tam_Lx, int tam_Ly, std::vector<int> tams_hl,float al
 	tam_layer_y=tam_Ly;
 	numero_layers=((int)tams_hl.size())+2;
 	LEARNING_RATE=alfa_learn;
+	score=0;
 
 	tam_layers.insert(tam_layers.begin(), tam_layer_x);
 	for(int i=1;i<numero_layers-1;i++)
@@ -33,6 +34,28 @@ RedeNeural::RedeNeural(int tam_Lx, int tam_Ly, std::vector<int> tams_hl,float al
 
 	for(int i=0;i<numero_layers-1;i++)
 		saidas.emplace_back(new Matriz(tam_layers[i+1], 1));
+	saidas.shrink_to_fit();
+}
+
+RedeNeural::RedeNeural(const RedeNeural &r){
+	tam_layer_x=r.tam_layer_x;
+	tam_layer_y=r.tam_layer_y;
+	numero_layers=r.numero_layers;
+	LEARNING_RATE=r.LEARNING_RATE;
+	score=0;
+
+	tam_layers=r.tam_layers;
+
+	bias_layers=r.bias_layers;
+	bias_layers.shrink_to_fit();
+
+	weights_layers=r.weights_layers;
+	weights_layers.shrink_to_fit();
+
+	erros=r.erros;
+	erros.shrink_to_fit();
+
+	saidas=r.saidas;
 	saidas.shrink_to_fit();
 }
 
@@ -150,6 +173,28 @@ void RedeNeural::FeedFoward(Matriz input_layer){
 	saidas.shrink_to_fit();
 }
 
+void RedeNeural::Mutacao(){
+	float coeficiente_mutacao=0.0001;
+	
+	for (int i = 0; i < numero_layers - 1; i++)
+		for (int j = 0; j < weights_layers[i]->linhas; j++)		
+			for (int k = 0; k < weights_layers[i]->colunas; k++)
+				if((rand()%100000)/100000<=coeficiente_mutacao)
+					weights_layers[i]->matriz[j][k]=((rand()%2001)-1000)/10;
+
+	for (int i = 0; i < numero_layers - 1; i++)
+		for (int j = 0; j < bias_layers[i]->linhas; j++)
+			for (int k = 0; k < bias_layers[i]->colunas; k++)
+				if((rand()%1000)/1000<=coeficiente_mutacao)
+					bias_layers[i]->matriz[j][k]=((rand()%2001)-1000)/10;
+}
+
+void RedeNeural::Calcular_Score(int pos_x){
+	score=pos_x/5; //Score de 0 -> 100 baseado no quao perto da borda direita estou
+	if(score<=0.1)
+		score=0;
+}
+
 //---------------------------FUNCOES---------------------------//
 
 void covolucao_saidas(Matriz* m){ //editar
@@ -180,4 +225,10 @@ int covolucao_saidasToDecimal(Matriz* m){
 
 	return	resultado;
 }
+
+RedeNeural* cruzamento(RedeNeural* a, RedeNeural* b){
+
+	return b;
+}
+
 //----------------------FUNCOES AUXILIARES---------------------//
