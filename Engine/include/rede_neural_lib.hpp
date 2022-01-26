@@ -13,9 +13,10 @@
 #include <algorithm>
 #include <assert.h>
 #include <chrono>
+#include <math.h>
 
 struct RedeNeural{
-	float LEARNING_RATE;
+	float MUTATION_RATE;
 	float score;
 	int numero_layers;
 	int tam_layer_x;
@@ -24,7 +25,6 @@ struct RedeNeural{
 
 	std::vector<Matriz*> weights_layers;
 	std::vector<Matriz*> bias_layers;
-	std::vector<Matriz*> erros;
 	std::vector<Matriz*> saidas;
 
 	RedeNeural(int tam_Lx, int tam_Ly, std::vector<int> tams_hl, float alfa_learn);
@@ -38,11 +38,11 @@ struct RedeNeural{
 
 	void FeedFoward(Matriz input_layer);
 	void Mutacao();
-	void Calcular_Score(int i);
+	void Calcular_Score(int pos_x, int pos_y, int w, int h);
 };
 
 void covolucao_saidas(Matriz* m);
 int covolucao_saidasToDecimal(Matriz* m);
-RedeNeural* cruzamento(RedeNeural* a, RedeNeural* b);
+RedeNeural Cruzamento(RedeNeural a, RedeNeural b);
 
 #endif //REDE_NEURAL_LIB_HPP

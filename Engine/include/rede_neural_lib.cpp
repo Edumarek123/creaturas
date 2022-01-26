@@ -10,7 +10,7 @@ RedeNeural::RedeNeural(int tam_Lx, int tam_Ly, std::vector<int> tams_hl,float al
 	tam_layer_x=tam_Lx;
 	tam_layer_y=tam_Ly;
 	numero_layers=((int)tams_hl.size())+2;
-	LEARNING_RATE=alfa_learn;
+	MUTATION_RATE=alfa_learn;
 	score=0;
 
 	tam_layers.insert(tam_layers.begin(), tam_layer_x);
@@ -25,12 +25,7 @@ RedeNeural::RedeNeural(int tam_Lx, int tam_Ly, std::vector<int> tams_hl,float al
 
 	for(int i=0;i<numero_layers-1;i++)
 		weights_layers.emplace_back(new Matriz(tam_layers[i+1],tam_layers[i]));
-
 	weights_layers.shrink_to_fit();
-
-	for(int i=0;i<numero_layers-1;i++)
-		erros.emplace_back(new Matriz(tam_layers[i+1], 1));
-	erros.shrink_to_fit();
 
 	for(int i=0;i<numero_layers-1;i++)
 		saidas.emplace_back(new Matriz(tam_layers[i+1], 1));
@@ -41,21 +36,21 @@ RedeNeural::RedeNeural(const RedeNeural &r){
 	tam_layer_x=r.tam_layer_x;
 	tam_layer_y=r.tam_layer_y;
 	numero_layers=r.numero_layers;
-	LEARNING_RATE=r.LEARNING_RATE;
+	MUTATION_RATE=r.MUTATION_RATE;
 	score=0;
 
 	tam_layers=r.tam_layers;
 
-	bias_layers=r.bias_layers;
+	for(int i=0;i<(r.numero_layers-1);i++)
+		bias_layers.emplace_back(new Matriz(*r.bias_layers[i]));
 	bias_layers.shrink_to_fit();
 
-	weights_layers=r.weights_layers;
+	for(int i=0;i<r.numero_layers-1;i++)
+		weights_layers.emplace_back(new Matriz(*r.weights_layers[i]));
 	weights_layers.shrink_to_fit();
 
-	erros=r.erros;
-	erros.shrink_to_fit();
-
-	saidas=r.saidas;
+	for(int i=0;i<numero_layers-1;i++)
+		saidas.emplace_back(new Matriz(*r.saidas[i]));
 	saidas.shrink_to_fit();
 }
 
@@ -63,7 +58,6 @@ RedeNeural::~RedeNeural(){
 	for(int i=0;i<numero_layers-1;i++){
 		delete weights_layers[i];
 		delete bias_layers[i];
-		delete erros[i];
 		delete saidas[i];
 	}
 }
@@ -171,28 +165,33 @@ void RedeNeural::FeedFoward(Matriz input_layer){
 		saidas[i]->map("sigmoide");
 	}
 	saidas.shrink_to_fit();
+
+	covolucao_saidas(saidas[numero_layers-2]);
 }
 
 void RedeNeural::Mutacao(){
-	float coeficiente_mutacao=0.0001;
-	
+	float coeficiente_mutacao=(score/100)*MUTATION_RATE;
+
 	for (int i = 0; i < numero_layers - 1; i++)
-		for (int j = 0; j < weights_layers[i]->linhas; j++)		
+		for (int j = 0; j < weights_layers[i]->linhas; j++)
 			for (int k = 0; k < weights_layers[i]->colunas; k++)
-				if((rand()%100000)/100000<=coeficiente_mutacao)
-					weights_layers[i]->matriz[j][k]=((rand()%2001)-1000)/10;
+				if((rand()%10001)/10000>coeficiente_mutacao)
+					weights_layers[i]->matriz[j][k]=((rand()%201)-100)/100;
 
 	for (int i = 0; i < numero_layers - 1; i++)
 		for (int j = 0; j < bias_layers[i]->linhas; j++)
 			for (int k = 0; k < bias_layers[i]->colunas; k++)
-				if((rand()%1000)/1000<=coeficiente_mutacao)
-					bias_layers[i]->matriz[j][k]=((rand()%2001)-1000)/10;
+				if((rand()%10001)/10000>coeficiente_mutacao)
+					bias_layers[i]->matriz[j][k]=((rand()%201)-100)/100;
 }
 
-void RedeNeural::Calcular_Score(int pos_x){
-	score=pos_x/5; //Score de 0 -> 100 baseado no quao perto da borda direita estou
-	if(score<=0.1)
-		score=0;
+void RedeNeural::Calcular_Score(int pos_x, int pos_y, int w, int h){
+	//Score de 0 -> 1000 baseado na distancia ao ponto (100, 100)
+	score=((pos_x-100)*(pos_x-100)) + ((pos_y-100)*(pos_y-100));
+	if(score!=0)
+	score=sqrt(score);
+	score/=sqrt(((w*w)+(h*h)));
+	score=(1-score)*100;
 }
 
 //---------------------------FUNCOES---------------------------//
@@ -226,9 +225,26 @@ int covolucao_saidasToDecimal(Matriz* m){
 	return	resultado;
 }
 
-RedeNeural* cruzamento(RedeNeural* a, RedeNeural* b){
+RedeNeural Cruzamento(RedeNeural a, RedeNeural b){
+	RedeNeural r{a};
 
-	return b;
+	for (int i = 0; i < r.numero_layers - 1; i++)
+	  for (int j = 0; j < r.weights_layers[i]->linhas; j++)
+	    for (int k = 0; k < r.weights_layers[i]->colunas; k++){
+	      if(rand()%2)
+	        r.weights_layers[i]->matriz[j][k]=a.weights_layers[i]->matriz[j][k];
+	      else
+	        r.weights_layers[i]->matriz[j][k]=b.weights_layers[i]->matriz[j][k];
+	    }
+	for (int i = 0; i < r.numero_layers - 1; i++)
+	  for (int j = 0; j < r.bias_layers[i]->linhas; j++)
+	    for (int k = 0; k < r.bias_layers[i]->colunas; k++){
+	      if(rand()%2)
+	        r.bias_layers[i]->matriz[j][k]=a.bias_layers[i]->matriz[j][k];
+	      else
+	        r.bias_layers[i]->matriz[j][k]=b.bias_layers[i]->matriz[j][k];
+	      }
+	return r;
 }
 
 //----------------------FUNCOES AUXILIARES---------------------//

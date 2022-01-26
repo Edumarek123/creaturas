@@ -9,53 +9,76 @@ const float velocidade_minima=25; //1.0ms
 const float forca_minima=1; //1.0N
 
 //------------------CONSTRUTORES&DESTRUTORES-------------------//
-
-Creatura::Creatura(){
-	massa=massa_minima;
-	velocidade=velocidade_minima;
-	forca=forca_minima;
-
-	direcao.push_back(0);
-	direcao.push_back(0);
-	
-	calcula_tamanho(massa);
-	calcula_cor();
-
-	x=tamanho+1;
-	y=tamanho+1;
-}
-
 Creatura::Creatura(const Creatura &c){
-	cerebro=c.cerebro;
-	x=c.x;
-	y=c.y;
+	cerebro=new RedeNeural(*c.cerebro);
+	bot_x=c.bot_x;
+	bot_y=c.bot_y;
+	top_x=c.top_x;
+	top_y=c.top_y;
 	massa=c.massa;
-	tamanho=c.tamanho;
+	calcula_tamanho(massa);
 	cor=c.cor;
 	direcao=c.direcao;
 	velocidade=c.velocidade;
 	forca=c.forca;
+	gera_spawn();
 }
 
-Creatura::Creatura(int X, int Y, float MASSA, std::vector<int> COR, float VELOCIDADE, float FORCA){
+Creatura::Creatura(const Creatura &a, const Creatura &b){
+	cerebro=new RedeNeural(Cruzamento(*a.cerebro, *b.cerebro));
+
+	if(rand()%2)
+		massa=a.massa;
+	else
+		massa=b.massa;
+	if(rand()%2)
+		velocidade=a.velocidade;
+	else
+		velocidade=b.velocidade;
+	if(rand()%2)
+		forca=a.forca;
+	else
+		forca=b.forca;
+
+	for(int i=0;i<3;i++){
+		if(rand()%2)
+			cor.push_back(a.cor[i]);
+		else
+			cor.push_back(b.cor[i]);
+	}
+	cor.shrink_to_fit();
+
+	calcula_tamanho(massa);
+
+	direcao=a.direcao;
+	bot_x=a.bot_x;
+	bot_y=a.bot_y;
+	top_x=a.top_x;
+	top_y=a.top_y;
+
+	gera_spawn();
+}
+
+Creatura::Creatura(int top_X, int top_Y, int bot_X, int bot_Y, float MASSA, std::vector<int> COR, float VELOCIDADE, float FORCA){
 	massa=MASSA;
 	velocidade=VELOCIDADE;
 	forca=FORCA;
 
 	direcao.push_back(0);
 	direcao.push_back(0);
-	
+
 	calcula_tamanho(massa);
 	//cor=COR;
 	calcula_cor();
 
-	x=X;
-	y=Y;
-	
-	std::vector<int> lh={16, 16};
-	cerebro=new RedeNeural(2, 8, lh, 1);
+	bot_x=bot_X;
+	bot_y=bot_Y;
+	top_x=top_X;
+	top_y=top_Y;
 
-	//imprimi_creatura();
+	gera_spawn();
+
+	cerebro=new RedeNeural(2, 9, {24, 24}, 0.08);
 }
 
 Creatura::~Creatura(){
@@ -64,6 +87,10 @@ Creatura::~Creatura(){
 
 
 //--------------------------METODOS---------------------------//
+void Creatura::gera_spawn(){
+	x=rand()%bot_x;
+	y=rand()%bot_y;
+}
 
 void Creatura::calcula_tamanho(float m){
 	tamanho=massa+2;
@@ -82,7 +109,7 @@ void Creatura::desenhar_creatura(SDL_Renderer* renderizador){
 	r.y=y;
 	r.w=tamanho;
 	r.h=tamanho;
-	
+
 	SDL_SetRenderDrawColor(renderizador, cor[0], cor[1], cor[2], 255);
 	SDL_RenderDrawRect(renderizador, &r);
 	SDL_RenderFillRect(renderizador, &r);
@@ -98,10 +125,12 @@ void Creatura::movimentar(){
 
 	Matriz* entradas=new Matriz(2, 1);
 
-	entradas->matriz[0][0]=x;	
-	entradas->matriz[1][0]=y;	
+	entradas->matriz[0][0]=x-100+tamanho;
+	entradas->matriz[1][0]=y-100+tamanho;
 
 	cerebro->FeedFoward(*entradas);
+
+	delete entradas;
 
 	int escolha=covolucao_saidasToDecimal(cerebro->saidas[2]);
 	switch (escolha){
@@ -137,22 +166,25 @@ void Creatura::movimentar(){
 			direcao[0]=1;
 			direcao[1]=1;
 			break;
+		default:
+			velocidade=0;
+			break;
 	}
 
 	delta_x=x+(direcao[0]*velocidade);
 	delta_y=y+(direcao[1]*velocidade);
 
-	if(delta_x>500-tamanho)
-		x=500-tamanho;
-	else if(delta_x<0)
-		x=0;
+	if(delta_x>bot_x-tamanho)
+		x=bot_x-tamanho;
+	else if(delta_x<top_x)
+		x=top_x;
 	else
 		x=delta_x;
 
-	if(delta_y>500-tamanho)
-		y=500-tamanho;
-	else if(delta_y<0)
-		y=0;
+	if(delta_y>bot_y-tamanho)
+		y=bot_y-tamanho;
+	else if(delta_y<top_y)
+		y=top_y;
 	else
 		y=delta_y;
 }
